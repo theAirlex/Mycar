@@ -5,26 +5,16 @@
 
 
 @doc Markdown.doc"""
-   MyTest(; name, D1)
+   Engine(; name)
 
-short MyTest component description
-
-## Parameters:
-
-| Name         | Description                         | Units  |   Default value |
-| ------------ | ----------------------------------- | ------ | --------------- |
-| `D1`         |                          | --  |   10 |
-
-## Connectors
-
- * `realinput` - This connector represents a real signal as an input to a component ([`RealInput`](@ref))
+short Engine component description
 """
-@component function MyTest(; name = nothing, D1=Float64(10), kwargs...)
+@component function Engine(; name = nothing, kwargs...)
   isnothing(name) && throw(ArgumentError("""
     The `name` keyword must be provided. Please consider using the `@named` macro,
     like so:
   
-    @named model = MyTest()
+    @named model = Engine()
   """))
 
   __overrides = __build_overrides(kwargs)
@@ -50,14 +40,10 @@ short MyTest component description
   ### Deferred assignment (default values that depend on final parameters)
 
   ### Symbolic Parameters
-  __local__D1 = D1
-  append!(__params, @parameters (D1::Real))
-  __initial_conditions[D1] = __local__D1
 
   ### Final Parameters (assignments)
 
   ### Final Path Parameters
-  append!(__vars, @variables (realinput(t)::Real), [input = true])
 
   ### Variables (declarations)
 
@@ -67,6 +53,12 @@ short MyTest component description
   __constants = Any[]
 
   ### Components
+  # Subcomponent Delay of type BlockComponents.Nonlinear.PadeDelay
+  Delay_overrides = __pop_subcomponent_overrides!(__overrides, "Delay")
+  push!(__systems, @named Delay = BlockComponents.Nonlinear.PadeDelay(; n=6, m=5, delayTime=0.3, Delay_overrides...))
+  # Subcomponent Lag of type BlockComponents.Continuous.FirstOrder
+  Lag_overrides = __pop_subcomponent_overrides!(__overrides, "Lag")
+  push!(__systems, @named Lag = BlockComponents.Continuous.FirstOrder(; T=0.3, Lag_overrides...))
 
   ### Check there are no unmatched overrides
   isempty(__overrides) || throw(ArgumentError("overrides: [$(join(keys(__overrides), ", "))] don't match names found in model. These names may exist in the model but could have been conditionally excluded."))
@@ -79,8 +71,9 @@ short MyTest component description
   __assertions = []
 
   ### Equations
+  push!(__eqs, connect(Delay.y, Lag.u))
 
   # Return completely constructed System
   return System(__eqs, t, __vars, __params; systems=__systems, initial_conditions=__initial_conditions, guesses=__guesses, name, initialization_eqs=__initialization_eqs, bindings=__bindings, assertions=__assertions)
 end
-export MyTest
+export Engine
