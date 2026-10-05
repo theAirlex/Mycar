@@ -2,7 +2,7 @@
 component EngineStep
   engine = mycar.Engine() {^engine}
   cmd = BlockComponents.Sources.Step(height = 200, start_time = 0.5, offset = 0) {^cmd}
-  load = RotationalComponents.Components.Inertia(J = 1) {^load}
+  load = RotationalComponents.Components.Inertia(J = 1, phi = initial 0, w = initial 0) {^load}
   mounts = RotationalComponents.Components.Fixed() {^mounts}
 relations
   connect(cmd.y, engine.tau_cmd) {^id5}

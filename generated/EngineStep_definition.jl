@@ -61,7 +61,7 @@ short EngineStep component description
   push!(__systems, @named cmd = BlockComponents.Sources.Step(; height=Float64(200), start_time=0.5, offset=Float64(0), cmd_overrides...))
   # Subcomponent load of type RotationalComponents.Components.Inertia
   load_overrides = __pop_subcomponent_overrides!(__overrides, "load")
-  push!(__systems, @named load = RotationalComponents.Components.Inertia(; J=Float64(1), load_overrides...))
+  push!(__systems, @named load = RotationalComponents.Components.Inertia(; J=Float64(1), phi__initial=0, w__initial=0, load_overrides...))
   # Subcomponent mounts of type RotationalComponents.Components.Fixed
   mounts_overrides = __pop_subcomponent_overrides!(__overrides, "mounts")
   push!(__systems, @named mounts = RotationalComponents.Components.Fixed(; mounts_overrides...))

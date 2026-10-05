@@ -84,7 +84,7 @@ short Engine component description
   push!(__systems, @named torquesource = RotationalComponents.Sources.TorqueSource(; torquesource_overrides...))
   # Subcomponent lag of type BlockComponents.Continuous.FirstOrder
   lag_overrides = __pop_subcomponent_overrides!(__overrides, "lag")
-  push!(__systems, @named lag = BlockComponents.Continuous.FirstOrder(; T=tau_e, lag_overrides...))
+  push!(__systems, @named lag = BlockComponents.Continuous.FirstOrder(; T=tau_e, x__initial=0, lag_overrides...))
   # Subcomponent dealy of type BlockComponents.Nonlinear.PadeDelay
   dealy_overrides = __pop_subcomponent_overrides!(__overrides, "dealy")
   push!(__systems, @named dealy = BlockComponents.Nonlinear.PadeDelay(; n=6, m=5, delayTime=theta_e, dealy_overrides...))
