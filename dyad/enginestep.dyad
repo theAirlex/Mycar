@@ -1,0 +1,64 @@
+"short EngineStep component description"
+component EngineStep
+  engine = mycar.Engine() {^engine}
+  cmd = BlockComponents.Sources.Step(height = 200, start_time = 0.5, offset = 0) {^cmd}
+  load = RotationalComponents.Components.Inertia(J = 1, phi = initial 0, w = initial 0) {^load}
+  mounts = RotationalComponents.Components.Fixed() {^mounts}
+relations
+  connect(cmd.y, engine.tau_cmd) {^id5}
+  connect(load.spline_a, engine.spline) {^id6}
+  connect(mounts.spline, engine.spline1) {^id7}
+metadata {
+  "Dyad": {
+    "experiments": {},
+    "tests": {},
+    "labels": [
+      {
+        "label": "$(instance)",
+        "x": 500,
+        "y": 1100,
+        "rot": 0,
+        "layer": "icon",
+        "attrs": {}
+      }
+    ],
+    "icons": {"default": "dyad://Dyad/Default.svg"},
+    "path": {},
+    "doc": {"behavior": true},
+    "deprecated": null,
+    "panel": {}
+  },
+  "_links": {
+    "engine": {
+      "Dyad": {"placement": {"diagram": {"x1": 390, "x2": 490, "y1": 390, "y2": 490}}}
+    },
+    "cmd": {
+      "Dyad": {"placement": {"diagram": {"x1": 40, "x2": 140, "y1": 400, "y2": 500}}}
+    },
+    "load": {
+      "Dyad": {"placement": {"diagram": {"x1": 740, "x2": 840, "y1": 450, "y2": 550}}}
+    },
+    "mounts": {
+      "Dyad": {"placement": {"diagram": {"x1": 350, "x2": 450, "y1": 720, "y2": 820}}}
+    },
+    "id5": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 313.5, "y": 450}, {"x": 313.5, "y": 440}], "E": 2}],
+        "path": {}
+      }
+    },
+    "id6": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 595, "y": 500}, {"x": 595, "y": 440}], "E": 2}],
+        "path": {}
+      }
+    },
+    "id7": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 400, "y": 610.5}, {"x": 440, "y": 610.5}], "E": 2}],
+        "path": {}
+      }
+    }
+  }
+}
+end

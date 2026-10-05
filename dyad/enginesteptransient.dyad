@@ -1,7 +1,7 @@
-"short MyTest component description"
-component MyTest
-  realinput = Dyad.RealInput() {^realinput}
-  parameter D1::Real() = 10
+"short EngineStepTransient analysis description"
+analysis EngineStepTransient
+  extends Dyad.TransientAnalysis(stop = 3)
+  model = mycar.EngineStep()
 relations
 metadata {
   "Dyad": {
@@ -22,11 +22,6 @@ metadata {
     "doc": {"behavior": true},
     "deprecated": null,
     "panel": {}
-  },
-  "_links": {
-    "realinput": {
-      "Dyad": {"placement": {"diagram": {"x1": 480, "x2": 560, "y1": 480, "y2": 560}}}
-    }
   }
 }
 end
