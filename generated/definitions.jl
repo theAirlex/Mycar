@@ -199,6 +199,9 @@ component.
 end
 
 
+include("EngineStepAnalysis_definition.jl")
+include("EngineStepTransient_definition.jl")
+include("EngineStep_definition.jl")
 include("Engine_definition.jl")
 include("Hello_definition.jl")
 include("MyTest_definition.jl")

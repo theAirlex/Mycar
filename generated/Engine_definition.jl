@@ -5,11 +5,25 @@
 
 
 @doc Markdown.doc"""
-   Engine(; name)
+   Engine(; name, theta_e, tau_e, T_max)
 
 short Engine component description
+
+## Parameters:
+
+| Name         | Description                         | Units  |   Default value |
+| ------------ | ----------------------------------- | ------ | --------------- |
+| `theta_e`         | Injection-to-torque transport delay                         | s  |   0.3 |
+| `tau_e`         | Manifold-filling first-order lag                         | s  |   0.3 |
+| `T_max`         | Peak deliverable torque                         | N.m  |   150 |
+
+## Connectors
+
+ * `spline` - This connector represents a rotational spline with angle and torque as the potential and flow variables, respectively. ([`Spline`](@ref))
+ * `spline1` - This connector represents a rotational spline with angle and torque as the potential and flow variables, respectively. ([`Spline`](@ref))
+ * `tau_cmd` - This connector represents a real signal as an input to a component ([`RealInput`](@ref))
 """
-@component function Engine(; name = nothing, kwargs...)
+@component function Engine(; name = nothing, theta_e=0.3, tau_e=0.3, T_max=Float64(150), kwargs...)
   isnothing(name) && throw(ArgumentError("""
     The `name` keyword must be provided. Please consider using the `@named` macro,
     like so:
@@ -40,10 +54,17 @@ short Engine component description
   ### Deferred assignment (default values that depend on final parameters)
 
   ### Symbolic Parameters
+  __local__tau_e = tau_e
+  append!(__params, @parameters (tau_e::Real), [description = "Manifold-filling first-order lag"])
+  __initial_conditions[tau_e] = __local__tau_e
+  __local__T_max = T_max
+  append!(__params, @parameters (T_max::Real), [description = "Peak deliverable torque"])
+  __initial_conditions[T_max] = __local__T_max
 
   ### Final Parameters (assignments)
 
   ### Final Path Parameters
+  append!(__vars, @variables (tau_cmd(t)::Real), [input = true])
 
   ### Variables (declarations)
 
@@ -53,12 +74,20 @@ short Engine component description
   __constants = Any[]
 
   ### Components
-  # Subcomponent Delay of type BlockComponents.Nonlinear.PadeDelay
-  Delay_overrides = __pop_subcomponent_overrides!(__overrides, "Delay")
-  push!(__systems, @named Delay = BlockComponents.Nonlinear.PadeDelay(; n=6, m=5, delayTime=0.3, Delay_overrides...))
-  # Subcomponent Lag of type BlockComponents.Continuous.FirstOrder
-  Lag_overrides = __pop_subcomponent_overrides!(__overrides, "Lag")
-  push!(__systems, @named Lag = BlockComponents.Continuous.FirstOrder(; T=0.3, Lag_overrides...))
+  push!(__systems, @named spline = __Dyad__Spline())
+  push!(__systems, @named spline1 = __Dyad__Spline())
+  # Subcomponent limiter of type BlockComponents.Nonlinear.Limiter
+  limiter_overrides = __pop_subcomponent_overrides!(__overrides, "limiter")
+  push!(__systems, @named limiter = BlockComponents.Nonlinear.Limiter(; y_max=T_max, y_min=Float64(0), limiter_overrides...))
+  # Subcomponent torquesource of type RotationalComponents.Sources.TorqueSource
+  torquesource_overrides = __pop_subcomponent_overrides!(__overrides, "torquesource")
+  push!(__systems, @named torquesource = RotationalComponents.Sources.TorqueSource(; torquesource_overrides...))
+  # Subcomponent lag of type BlockComponents.Continuous.FirstOrder
+  lag_overrides = __pop_subcomponent_overrides!(__overrides, "lag")
+  push!(__systems, @named lag = BlockComponents.Continuous.FirstOrder(; T=tau_e, lag_overrides...))
+  # Subcomponent dealy of type BlockComponents.Nonlinear.PadeDelay
+  dealy_overrides = __pop_subcomponent_overrides!(__overrides, "dealy")
+  push!(__systems, @named dealy = BlockComponents.Nonlinear.PadeDelay(; n=6, m=5, delayTime=theta_e, dealy_overrides...))
 
   ### Check there are no unmatched overrides
   isempty(__overrides) || throw(ArgumentError("overrides: [$(join(keys(__overrides), ", "))] don't match names found in model. These names may exist in the model but could have been conditionally excluded."))
@@ -71,7 +100,12 @@ short Engine component description
   __assertions = []
 
   ### Equations
-  push!(__eqs, connect(Delay.y, Lag.u))
+  push!(__eqs, connect(dealy.y, lag.u))
+  push!(__eqs, connect(lag.y, limiter.u))
+  push!(__eqs, connect(limiter.y, torquesource.tau))
+  push!(__eqs, connect(torquesource.support, spline1))
+  push!(__eqs, connect(torquesource.spline, spline))
+  push!(__eqs, connect(dealy.u, tau_cmd))
 
   # Return completely constructed System
   return System(__eqs, t, __vars, __params; systems=__systems, initial_conditions=__initial_conditions, guesses=__guesses, name, initialization_eqs=__initialization_eqs, bindings=__bindings, assertions=__assertions)

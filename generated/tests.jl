@@ -18,6 +18,7 @@ end
 include("test_internals.jl")
 
 @testset "`mycar`" begin
+include("EngineStep_test.jl")
 include("Engine_test.jl")
 include("Hello_test.jl")
 include("MyTest_test.jl")
